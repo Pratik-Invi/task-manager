@@ -1,6 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import AddTask from './components/AddTask';
 import TaskList from './components/TaskList';
+import BookTable from './components/BookTable';
 
 export default function App(){
   const [tasks,setTasks]=useState([]);
@@ -45,6 +46,9 @@ export default function App(){
       <h1>Task Manager</h1>
       <AddTask onAdd={addTask}/>
       <TaskList tasks={tasks} onToggle={toggleTask} onDelete={deleteTask}/>
+
+      {/* Books section */}
+      <BookTable />
     </div>
   );
 }
