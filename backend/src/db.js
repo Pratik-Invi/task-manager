@@ -3,16 +3,23 @@ const { Pool } = require('pg');
 const useSsl = process.env.DB_SSL === 'true' || process.env.DB_HOST?.includes('rds.amazonaws.com');
 const dbName = process.env.DB_DATABASE || 'taskdb';
 const adminDbName = process.env.DB_ADMIN_DATABASE || 'postgres';
+const adminUser = process.env.DB_ADMIN_USER || process.env.DB_USER;
+const adminPassword = process.env.DB_ADMIN_PASSWORD || process.env.DB_PASSWORD;
 
-function createPool(databaseName) {
-  return new Pool({
+function createPool(databaseName, user = process.env.DB_USER, password = process.env.DB_PASSWORD) {
+  const poolConfig = {
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT || 5432),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user,
+    password,
     database: databaseName,
-    ssl: useSsl ? { rejectUnauthorized: false } : false
-  });
+    ssl: useSsl ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 10000,
+    idleTimeoutMillis: 10000
+  };
+
+  console.log(`Connecting to database ${databaseName} at ${process.env.DB_HOST}:${poolConfig.port}`);
+  return new Pool(poolConfig);
 }
 
 let pool = null;
@@ -25,7 +32,7 @@ function getPool() {
 }
 
 async function ensureDatabaseExists() {
-  const adminPool = createPool(adminDbName);
+  const adminPool = createPool(adminDbName, adminUser, adminPassword);
 
   try {
     const result = await adminPool.query(
